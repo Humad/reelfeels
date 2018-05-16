@@ -5,10 +5,12 @@ from .models import Video, Profile, Comment, ViewInstance
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
+# Log in user
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class' : 'form-control required', 'placeholder':'Username',}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class' : 'form-control required', 'placeholder':'Password',}))
 
+# Create new user
 class SignUpForm(UserCreationForm):
     profile_pic = forms.ImageField(required=False)
     email = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Email', 'class' : 'form-control'}))
@@ -21,17 +23,17 @@ class SignUpForm(UserCreationForm):
         fields = ('username', 'email','password1', 'password2')
 
 
-#creating the form to allow users to create new comments
+# Create new comments
 class CommentCreationForm(forms.Form):
     comment = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Submit a public comment', 'size': '100', 'maxlength':'1000'}))
 
-# form class for uploading a video
+# Upload videos
 class VideoUploadForm(forms.Form):
     video_url = forms.URLField(widget=forms.URLInput(attrs={'class':'form-control', 'placeholder':'YouTube URL...', 'id':'video-url-input'}))
     video_title = forms.CharField(label='Title:', widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Upload Title...'}))
     video_description = forms.CharField(label='Description:', widget=forms.Textarea(attrs={'class':'form-control', 'placeholder':'Upload Description...', 'id':'upload-desc', 'maxlength':'1000', 'rows':'5'}))
 
-
+# Update videos
 class VideoUpdateForm(forms.ModelForm):
     class Meta:
         model = Video
@@ -53,7 +55,7 @@ class VideoUpdateForm(forms.ModelForm):
 
         return cleaned_data
 
-
+# Update user info
 class UserUpdateForm(forms.ModelForm):
     email = forms.CharField(widget=forms.TextInput(attrs={'class' : 'form-control required', 'placeholder':'Username',}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class' : 'form-control required'}))

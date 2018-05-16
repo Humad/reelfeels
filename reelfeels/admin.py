@@ -19,6 +19,5 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ('user',)
 
 # VideoToUser
-# admin.site.register(Upload)
 admin.site.register(Comment)
 admin.site.register(ViewInstance)

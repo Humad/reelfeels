@@ -1,4 +1,5 @@
 import datetime
+import numpy as np
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import Context
@@ -11,19 +12,20 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-
-import numpy as np
 from numpy import trapz
 
 time_offset = 3
 
+# Home page
 def index(request):
     return render(request, 'index.html', {})
 
+# Required to calculate and store emotions
 def calculus(one, two):
     arr = np.array([one,two])
     return trapz(arr, dx=time_offset)
 
+# Video page
 def video_content(request, video_id):
     # if request is an AJAX POST request (and a user is currently logged in), update the ViewInstance (or create a new one if necessary)
     if(request.method == 'POST' and request.is_ajax() and request.user.is_authenticated):
@@ -52,16 +54,16 @@ def video_content(request, video_id):
 
         currentView.save()
 
-        # Note: check admin site to view the updated ViewInstance for testing!!!
+        # Note: check admin site to view the updated ViewInstance for testing!
 
-        return HttpResponse() #TO-DO: not really sure what to return here... (figure out if this is important!)
+        return HttpResponse() #TO-DO: not really sure what to return here...
 
     # else, the request is not AJAX, and the page should be normally/synchronously rendered
     else:
         # Get video object from url
         video = get_object_or_404(Video, pk=video_id)
 
-        #note that this references the profile, not the django user
+        # Note: this references the profile, not the django user
         uploader = video.uploader_id
 
         if (request.user == uploader.user):
@@ -70,7 +72,7 @@ def video_content(request, video_id):
             delete_url = request.get_full_path() + "/delete"
         else:
             is_owner = False
-            edit_url = "" #throws errors otherwise
+            edit_url = ""
             delete_url = ""
 
         form = CommentCreationForm()
@@ -106,6 +108,7 @@ def video_content(request, video_id):
             }
         )
 
+# User profile page
 def user_profile(request, user_id):
     is_owner = (request.user.is_authenticated) and (user_id == request.user.id)
     profile = get_object_or_404(Profile, id=user_id)
@@ -120,6 +123,8 @@ def user_profile(request, user_id):
         }
     )
 
+# Self profile
+# To-do: Redirect to user profile page with current user id
 def my_profile(request):
     profile = get_object_or_404(Profile, user_id=request.user.id)
     is_owner = (profile == request.user.profile)
@@ -197,13 +202,15 @@ def login_page(request):
     form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
+# Logout user; redirect to home
 def logout_page(request):
     if request.user.is_authenticated:
         logout(request)
     return redirect('home')
 
+# Signup page
 def signup_page(request):
-    #If the form is being submitted, process it
+    # If the form is being submitted, process it
     if request.user.is_authenticated:
         return redirect('my-profile')
     elif request.method == 'POST':
@@ -222,11 +229,12 @@ def signup_page(request):
             login(request, user)
             return redirect('home')
 
-    #Otherwise, display a new sign up form
+    # Otherwise, display a new sign up form
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {"form":form})
 
+# Upload page
 def upload_page(request):
     # if user is logged in, show the upload view
     if request.user.is_authenticated:
@@ -255,8 +263,7 @@ def upload_page(request):
         message = "You must log in to upload videos"
         return render(request, 'login.html', {'form': form, 'message': message})
 
-
-
+# Search results page
 def search_page(request):
     search_query = request.GET.get('search-query')
 
@@ -274,6 +281,7 @@ def search_page(request):
         }
     )
 
+# Explore page
 def explore_page(request):
     # Get list of new videos
     new_cutoff = datetime.datetime.now() - datetime.timedelta(days=7)
@@ -291,6 +299,8 @@ def explore_page(request):
             "popular_videos": popular_videos,
         },
     )
+
+# Video update page
 class VideoUpdate(UpdateView):
     model = Video
     form_class = VideoUpdateForm
@@ -305,6 +315,7 @@ class VideoUpdate(UpdateView):
             raise Http404()
         return obj
 
+# Video delete page
 class VideoDelete(DeleteView):
     model = Video
     template_name = 'video_confirm_delete.html'
@@ -319,6 +330,7 @@ class VideoDelete(DeleteView):
             raise Http404()
         return obj
 
+# Update profile page
 def update_profile(request):
     if request.user.is_authenticated:
         if (request.method == 'POST'):
@@ -349,6 +361,7 @@ def update_profile(request):
         message = "You must log in to update your account"
         return render(request, 'login.html', {'form': form, 'message': message})
 
+# Generalized commend add/delete functions
 class CommentHandler:
     def add_comment(request, video_id):
         video = get_object_or_404(Video, pk=video_id)
